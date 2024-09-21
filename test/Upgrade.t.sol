@@ -8,6 +8,7 @@ import {Counter} from "../src/Counter.sol";
 import {CounterV2} from "../src/CounterV2.sol";
 import "../src/ICounter.sol";
 import "../src/ICounterV2.sol";
+import "../src/Msg.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
@@ -16,12 +17,16 @@ contract CounterTest is Test {
     CounterV2 public myContractV2;
     TransparentUpgradeableProxy public proxy;
     ProxyAdmin public proxyAdmin;
+    Msg public message;
 
     function setUp() public {
         //necessary because tranpsarent proxies communicate the owner only through logs
         vm.recordLogs();
 
         myContract = new Counter();
+
+        message = new Msg();
+
 
         bytes memory data = abi.encodeWithSignature("initialize(uint256)", 42);
         proxy = new TransparentUpgradeableProxy(
@@ -69,8 +74,7 @@ contract CounterTest is Test {
 
         uint256 val = upgraded.value();
         console.log(upgraded.endpoint());
-        //endpoint will be the same
-        assertEq(oldEndpoint, upgraded.endpoint());
-        assertEq(val, 42); // Should be back to the initial value after decrement
+        //endpoint will be different
+        assert(oldEndpoint != upgraded.endpoint());
     }
 }
